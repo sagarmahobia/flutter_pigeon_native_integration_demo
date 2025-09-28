@@ -284,3 +284,38 @@ class NativeCalculator {
     }
   }
 }
+
+abstract class TimerEvents {
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  void onTimeElapsed(int time);
+
+  static void setUp(TimerEvents? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
+    messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.flutter_pigeon_native_integration_demo.TimerEvents.onTimeElapsed$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.flutter_pigeon_native_integration_demo.TimerEvents.onTimeElapsed was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final int? arg_time = (args[0] as int?);
+          assert(arg_time != null,
+              'Argument for dev.flutter.pigeon.flutter_pigeon_native_integration_demo.TimerEvents.onTimeElapsed was null, expected non-null int.');
+          try {
+            api.onTimeElapsed(arg_time!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+  }
+}

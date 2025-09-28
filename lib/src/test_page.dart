@@ -8,20 +8,42 @@ class TestPage extends StatefulWidget {
   State<TestPage> createState() => _TestPageState();
 }
 
-class _TestPageState extends State<TestPage> {
+class _TestPageState extends State<TestPage> implements TimerEvents {
   final _firstController = TextEditingController(text: '6');
   final _secondController = TextEditingController(text: '3');
   final _nativeCalculator = NativeCalculator();
+
+  int _elapsedSeconds = 0;
+  bool _timerListening = false; // purely for UI state, events always flow
 
   String? _result;
   String? _error;
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Register this instance to receive TimerEvents from native side.
+    TimerEvents.setUp(this);
+    _timerListening = true; // native side starts immediately after engine config
+  }
+
+  @override
   void dispose() {
     _firstController.dispose();
     _secondController.dispose();
+    // To stop receiving, unregister by setting up with null (optional cleanup)
+    TimerEvents.setUp(null);
     super.dispose();
+  }
+
+  // FlutterApi callback from native (Pigeon generated) ------------------
+  @override
+  void onTimeElapsed(int time) {
+    if (!mounted) return;
+    setState(() {
+      _elapsedSeconds = time;
+    });
   }
 
   Future<void> _calculate(
@@ -82,6 +104,27 @@ class _TestPageState extends State<TestPage> {
           children: [
             const Text(
               'Enter two integers then tap an operation to call the native calculator.',
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Elapsed (Android Timer via Pigeon): $_elapsedSeconds s',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    Icon(
+                      _timerListening ? Icons.timer : Icons.timer_off,
+                      color: _timerListening ? Colors.green : Colors.red,
+                    )
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             TextField(

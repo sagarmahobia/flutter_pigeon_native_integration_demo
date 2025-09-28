@@ -15,6 +15,9 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 private object NativeCalculatorPigeonUtils {
 
+  fun createConnectionError(channelName: String): FlutterError {
+    return FlutterError("channel-error",  "Unable to establish connection on channel: '$channelName'.", "")  }
+
   fun wrapResult(result: Any?): List<Any?> {
     return listOf(result)
   }
@@ -233,6 +236,32 @@ interface NativeCalculator {
           channel.setMessageHandler(null)
         }
       }
+    }
+  }
+}
+/** Generated class from Pigeon that represents Flutter messages that can be called from Kotlin. */
+class TimerEvents(private val binaryMessenger: BinaryMessenger, private val messageChannelSuffix: String = "") {
+  companion object {
+    /** The codec used by TimerEvents. */
+    val codec: MessageCodec<Any?> by lazy {
+      NativeCalculatorPigeonCodec()
+    }
+  }
+  fun onTimeElapsed(timeArg: Long, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.flutter_pigeon_native_integration_demo.TimerEvents.onTimeElapsed$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(timeArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(NativeCalculatorPigeonUtils.createConnectionError(channelName)))
+      } 
     }
   }
 }

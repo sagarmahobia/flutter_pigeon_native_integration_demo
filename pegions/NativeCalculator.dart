@@ -34,3 +34,11 @@ abstract class NativeCalculator {
   @async
   int multiplyLate(int a, int b);
 }
+
+
+@FlutterApi()
+abstract class TimerEvents{
+
+  void onTimeElapsed(int time);
+
+}
